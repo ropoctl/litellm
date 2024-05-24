@@ -1598,6 +1598,10 @@ class Cache:
             "logit_bias",
             "user",
             "response_format",
+            "guided_json",
+            "guided_regex",
+            "guided_choice",
+            "guided_grammar",
             "seed",
             "tools",
             "tool_choice",
@@ -1786,6 +1790,38 @@ class Cache:
         except Exception as e:
             print_verbose(f"An exception occurred: {traceback.format_exc()}")
             return None
+    
+    def _request_subset(self, kwargs):
+        save_keys = (
+            "model",
+            "messages",
+            "temperature",
+            "top_p",
+            "n",
+            "stop",
+            "max_tokens",
+            "presence_penalty",
+            "frequency_penalty",
+            "logit_bias",
+            "user",
+            "response_format",
+            "guided_json",
+            "guided_regex",
+            "guided_choice",
+            "guided_grammar",
+            "seed",
+            "tools",
+            "tool_choice",
+            "input",
+            "encoding_format",
+            "file",
+            "language",
+        )
+        clean = {}
+        for key in save_keys:
+            if key in kwargs:
+                clean[key] = kwargs[key]
+        return clean
 
     def _add_cache_logic(self, result, *args, **kwargs):
         """
@@ -1811,7 +1847,7 @@ class Cache:
                         if k == "ttl":
                             kwargs["ttl"] = v
 
-                cached_data = {"timestamp": time.time(), "response": result}
+                cached_data = {"timestamp": time.time(), "request": self._request_subset(kwargs), "response": result}
                 return cache_key, cached_data, kwargs
             else:
                 raise Exception("cache key is None")
